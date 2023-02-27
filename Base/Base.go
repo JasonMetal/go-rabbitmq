@@ -132,6 +132,17 @@ func (r *RabbitMQ) ConsumeSimple() {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~简单模式 end
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~订阅模式 start
+
+func NewRabbitMQPublish(exchangeName string) *RabbitMQ {
+	rabbitmq := NewRabbitMQ("", exchangeName, "")
+	var err error
+	rabbitmq.conn, err = amqp.Dial(rabbitmq.Mqurl)
+	rabbitmq.failOnErr(err, "创建链接失败")
+	rabbitmq.channel, err = rabbitmq.conn.Channel()
+	rabbitmq.failOnErr(err, "创建channel失败")
+	return rabbitmq
+}
+
 func (r *RabbitMQ) PublishPub(msg string) {
 	//1. 创建交换机
 	err := r.channel.ExchangeDeclare(
