@@ -1,4 +1,4 @@
-package Base
+package base
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-//连接
+// 连接
 const URL = "amqp://guest:guest@localhost:5672/"
 
 type RabbitMQ struct {
@@ -27,13 +27,12 @@ func NewRabbitMQ(queueName string, exchange string, key string) *RabbitMQ {
 	}
 }
 
-//断开连接（channel，connection），销毁方法
+// 断开连接（channel，connection），销毁方法
 func (r RabbitMQ) Destory() {
 	r.channel.Close()
 	r.conn.Close()
 }
 
-//
 func (r *RabbitMQ) failOnErr(err error, msg string) {
 	if err != nil {
 		log.Fatalf("%s:%s", msg, err)
@@ -44,10 +43,10 @@ func (r *RabbitMQ) failOnErr(err error, msg string) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~简单模式 start
 
 // NewRabbitMQSimple
-//  @Description:
-//  @param queueName
-//  @return *RabbitMQ
 //
+//	@Description:
+//	@param queueName
+//	@return *RabbitMQ
 func NewRabbitMQSimple(queueName string) *RabbitMQ {
 	rabbitmq := NewRabbitMQ(queueName, "", "")
 	var err error
@@ -58,12 +57,11 @@ func NewRabbitMQSimple(queueName string) *RabbitMQ {
 	return rabbitmq
 }
 
-//
 // PublishSimple
-//  @Description: 生产者-简单模式
-//  @receiver r
-//  @param msg
 //
+//	@Description: 生产者-简单模式
+//	@receiver r
+//	@param msg
 func (r *RabbitMQ) PublishSimple(msg string) {
 	_, err := r.channel.QueueDeclare(
 		//name string, durable, autoDelete, exclusive, noWait bool, args Table
@@ -233,7 +231,7 @@ func NewRabbitMQRouting(exchangeName string, routingKey string) *RabbitMQ {
 	return rabbitmq
 }
 
-//路由模式发送消息
+// 路由模式发送消息
 func (r *RabbitMQ) PublishRouting(msg string) {
 	err := r.channel.ExchangeDeclare(
 		r.Exchange,
@@ -253,7 +251,7 @@ func (r *RabbitMQ) PublishRouting(msg string) {
 		})
 }
 
-//第三步： routing模式下的消息消费
+// 第三步： routing模式下的消息消费
 func (r *RabbitMQ) ReceiveRouting() {
 	//1.
 	err := r.channel.ExchangeDeclare(

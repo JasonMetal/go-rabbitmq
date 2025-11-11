@@ -1,15 +1,15 @@
-package Worker
+package simple
 
 import (
 	"fmt"
-	"go-rabbitmq/Base"
+	"go-rabbitmq/base"
 	"strconv"
 	"time"
 )
 
-//worker模式下
-func main() {
-	rabbitmq := Base.NewRabbitMQSimple("Simple")
+// SimplePublish 简单模式发布者
+func SimplePublish() {
+	rabbitmq := base.NewRabbitMQSimple("Simple")
 	for i := 0; i <= 100; i++ {
 		rabbitmq.PublishSimple("hello worker mode" + strconv.Itoa(i))
 		time.Sleep(1 * time.Second)

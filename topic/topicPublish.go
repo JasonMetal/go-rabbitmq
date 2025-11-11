@@ -1,15 +1,15 @@
-package Topic
+package topic
 
 import (
 	"fmt"
-	"go-rabbitmq/Base"
+	"go-rabbitmq/base"
 	"strconv"
 	"time"
 )
 
-func main() {
-	three := Base.NewRabbitMQTopic("exchangeTopic", "topic11.three")
-	four := Base.NewRabbitMQTopic("exchangeTopic", "topic11.four")
+func TopicPublish() {
+	three := base.NewRabbitMQTopic("exchangeTopic", "topic11.three")
+	four := base.NewRabbitMQTopic("exchangeTopic", "topic11.four")
 
 	for i := 0; i <= 10; i++ {
 		three.PublishTopic("hello topic three" + strconv.Itoa(i))

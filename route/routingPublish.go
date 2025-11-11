@@ -1,15 +1,15 @@
-package Route
+package route
 
 import (
 	"fmt"
-	"go-rabbitmq/Base"
+	"go-rabbitmq/base"
 	"strconv"
 	"time"
 )
 
-func main() {
-	one := Base.NewRabbitMQRouting("exchangeRoute", "one")
-	two := Base.NewRabbitMQRouting("exchangeRoute", "two")
+func RoutePublish() {
+	one := base.NewRabbitMQRouting("exchangeRoute", "one")
+	two := base.NewRabbitMQRouting("exchangeRoute", "two")
 	for i := 0; i < 100; i++ {
 		one.PublishRouting("hello one" + strconv.Itoa(i))
 		two.PublishRouting("hello two" + strconv.Itoa(i))

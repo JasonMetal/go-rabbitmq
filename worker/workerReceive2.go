@@ -1,11 +1,11 @@
-package simple
+package worker
 
 import (
 	"go-rabbitmq/base"
 )
 
-// SimpleReceive 简单模式消费者
-func SimpleReceive() {
+// WorkerReceive2 工作队列模式消费者2
+func WorkerReceive2() {
 	rabbitmq := base.NewRabbitMQSimple("Simple")
 	rabbitmq.ConsumeSimple()
 }
