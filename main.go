@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"go-rabbitmq/pub_sub"
 	"go-rabbitmq/route"
-	"go-rabbitmq/simple"
+	"go-rabbitmq/simples"
 	"go-rabbitmq/topic"
 	"go-rabbitmq/worker"
 	"os"
@@ -34,9 +34,9 @@ func main() {
 
 	switch mode {
 	case "simple-publish":
-		simple.SimplePublish()
+		simples.SimplePublish()
 	case "simple-consume":
-		simple.SimpleReceive()
+		simples.SimpleReceive()
 	case "worker-publish":
 		worker.WorkerPublish()
 	case "worker-consume1":
