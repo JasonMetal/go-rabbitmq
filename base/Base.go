@@ -11,7 +11,7 @@ const URL = "amqp://guest:guest@localhost:5672/"
 
 type RabbitMQ struct {
 	conn      *amqp.Connection
-	channel   *amqp.Channel
+	Channel   *amqp.Channel
 	QueueName string
 	Exchange  string
 	Key       string
@@ -29,7 +29,7 @@ func NewRabbitMQ(queueName string, exchange string, key string) *RabbitMQ {
 
 // 断开连接（channel，connection），销毁方法
 func (r RabbitMQ) Destory() {
-	r.channel.Close()
+	r.Channel.Close()
 	r.conn.Close()
 }
 
@@ -52,7 +52,7 @@ func NewRabbitMQSimple(queueName string) *RabbitMQ {
 	var err error
 	rabbitmq.conn, err = amqp.Dial(rabbitmq.Mqurl)
 	rabbitmq.failOnErr(err, "创建链接失败！")
-	rabbitmq.channel, err = rabbitmq.conn.Channel()
+	rabbitmq.Channel, err = rabbitmq.conn.Channel()
 	rabbitmq.failOnErr(err, "创建channel失败")
 	return rabbitmq
 }
@@ -63,7 +63,7 @@ func NewRabbitMQSimple(queueName string) *RabbitMQ {
 //	@receiver r
 //	@param msg
 func (r *RabbitMQ) PublishSimple(msg string) {
-	_, err := r.channel.QueueDeclare(
+	_, err := r.Channel.QueueDeclare(
 		//name string, durable, autoDelete, exclusive, noWait bool, args Table
 		r.QueueName, //队列名，
 		false,       //durable，是否持久化
@@ -77,7 +77,7 @@ func (r *RabbitMQ) PublishSimple(msg string) {
 		fmt.Println("PublishSimple 's QueueDeclare err is :", err)
 	}
 
-	r.channel.Publish(
+	r.Channel.Publish(
 		r.Exchange,
 		r.QueueName,
 		false,
@@ -90,7 +90,7 @@ func (r *RabbitMQ) PublishSimple(msg string) {
 }
 
 func (r *RabbitMQ) ConsumeSimple() {
-	_, err := r.channel.QueueDeclare(
+	_, err := r.Channel.QueueDeclare(
 		r.QueueName, //队列名，
 		false,       //durable，是否持久化
 		false,       //autoDelete，自动删除
@@ -101,7 +101,7 @@ func (r *RabbitMQ) ConsumeSimple() {
 	if err != nil {
 		fmt.Println("ConsumeSimple 's QueueDeclare err is :", err)
 	}
-	msgs, errs := r.channel.Consume(
+	msgs, errs := r.Channel.Consume(
 		r.QueueName,
 		"",    //区分多个消费者
 		true,  // 是否自动应答
@@ -136,14 +136,14 @@ func NewRabbitMQPublish(exchangeName string) *RabbitMQ {
 	var err error
 	rabbitmq.conn, err = amqp.Dial(rabbitmq.Mqurl)
 	rabbitmq.failOnErr(err, "创建链接失败")
-	rabbitmq.channel, err = rabbitmq.conn.Channel()
+	rabbitmq.Channel, err = rabbitmq.conn.Channel()
 	rabbitmq.failOnErr(err, "创建channel失败")
 	return rabbitmq
 }
 
 func (r *RabbitMQ) PublishPub(msg string) {
 	//1. 创建交换机
-	err := r.channel.ExchangeDeclare(
+	err := r.Channel.ExchangeDeclare(
 		r.Exchange,
 		"fanout",
 		true,
@@ -154,7 +154,7 @@ func (r *RabbitMQ) PublishPub(msg string) {
 	)
 	r.failOnErr(err, "Failed to declare an exchange")
 	//2. 发送消息
-	err = r.channel.Publish(
+	err = r.Channel.Publish(
 		r.Exchange,
 		"",
 		false,
@@ -166,7 +166,7 @@ func (r *RabbitMQ) PublishPub(msg string) {
 }
 
 func (r *RabbitMQ) ReceivePub() {
-	err := r.channel.ExchangeDeclare(
+	err := r.Channel.ExchangeDeclare(
 		r.Exchange,
 		"fanout",
 		true,
@@ -177,7 +177,7 @@ func (r *RabbitMQ) ReceivePub() {
 	)
 	r.failOnErr(err, "Failed to declare an exchange")
 	//2. 尝试创建一个队列
-	declare, err := r.channel.QueueDeclare(
+	declare, err := r.Channel.QueueDeclare(
 		"",
 		false,
 		false,
@@ -187,7 +187,7 @@ func (r *RabbitMQ) ReceivePub() {
 	)
 	r.failOnErr(err, "Failed to declare a queue")
 	//3. 绑定队列到exchange
-	err = r.channel.QueueBind(
+	err = r.Channel.QueueBind(
 		declare.Name,
 		"",
 		r.Exchange, //交换机名字
@@ -195,7 +195,7 @@ func (r *RabbitMQ) ReceivePub() {
 		nil,
 	)
 	//消费者
-	consume, errConsume := r.channel.Consume(
+	consume, errConsume := r.Channel.Consume(
 		declare.Name,
 		"",
 		true,
@@ -226,21 +226,21 @@ func NewRabbitMQRouting(exchangeName string, routingKey string) *RabbitMQ {
 	rabbitmq.conn, err = amqp.Dial(rabbitmq.Mqurl)
 	rabbitmq.failOnErr(err, "创建链接失败！")
 	//获取Channel
-	rabbitmq.channel, err = rabbitmq.conn.Channel()
+	rabbitmq.Channel, err = rabbitmq.conn.Channel()
 	rabbitmq.failOnErr(err, "创建channel失败")
 	return rabbitmq
 }
 
 // 路由模式发送消息
 func (r *RabbitMQ) PublishRouting(msg string) {
-	err := r.channel.ExchangeDeclare(
+	err := r.Channel.ExchangeDeclare(
 		r.Exchange,
 		"direct", //点对点
 		true,
 		false, false, false, nil,
 	)
 	r.failOnErr(err, "Failed to declare an exchange")
-	err = r.channel.Publish(
+	err = r.Channel.Publish(
 		r.Exchange,
 		r.Key,
 		false,
@@ -254,7 +254,7 @@ func (r *RabbitMQ) PublishRouting(msg string) {
 // 第三步： routing模式下的消息消费
 func (r *RabbitMQ) ReceiveRouting() {
 	//1.
-	err := r.channel.ExchangeDeclare(
+	err := r.Channel.ExchangeDeclare(
 		r.Exchange,
 		"direct",
 		true, //是否持久化
@@ -266,7 +266,7 @@ func (r *RabbitMQ) ReceiveRouting() {
 	r.failOnErr(err, "Failed to declare an exchange")
 	//声明队列
 	//2.尝试创建一个队列，这里注意队列名为空
-	declare, err := r.channel.QueueDeclare(
+	declare, err := r.Channel.QueueDeclare(
 		"", //队列名为空
 		false,
 		false,
@@ -276,7 +276,7 @@ func (r *RabbitMQ) ReceiveRouting() {
 	)
 	r.failOnErr(err, "Failed to declare a queue")
 	//3.绑定队列到exchange中
-	err = r.channel.QueueBind(
+	err = r.Channel.QueueBind(
 		declare.Name,
 		r.Key,      //pub/sub下，key要为空
 		r.Exchange, //交换机名
@@ -284,7 +284,7 @@ func (r *RabbitMQ) ReceiveRouting() {
 		nil,
 	)
 	//消费消息
-	consume, err := r.channel.Consume(
+	consume, err := r.Channel.Consume(
 		declare.Name,
 		"",
 		true,
@@ -314,13 +314,13 @@ func NewRabbitMQTopic(exchange string, routingKey string) *RabbitMQ {
 	var err error
 	rabbitmq.conn, err = amqp.Dial(rabbitmq.Mqurl)
 	rabbitmq.failOnErr(err, "Failed to connect rabbitmq!")
-	rabbitmq.channel, err = rabbitmq.conn.Channel()
+	rabbitmq.Channel, err = rabbitmq.conn.Channel()
 	rabbitmq.failOnErr(err, "Failed to open a channel")
 	return rabbitmq
 }
 
 func (r *RabbitMQ) PublishTopic(msg string) {
-	err := r.channel.ExchangeDeclare(
+	err := r.Channel.ExchangeDeclare(
 		r.Exchange,
 		"topic",
 		true,
@@ -331,7 +331,7 @@ func (r *RabbitMQ) PublishTopic(msg string) {
 	)
 	r.failOnErr(err, "Failed to declare an exchange")
 	//2.生产消息
-	err = r.channel.Publish(
+	err = r.Channel.Publish(
 		r.Exchange,
 		r.Key, //要设置
 		false,
@@ -343,7 +343,7 @@ func (r *RabbitMQ) PublishTopic(msg string) {
 }
 
 func (r *RabbitMQ) RecieveTopic() {
-	err := r.channel.ExchangeDeclare(
+	err := r.Channel.ExchangeDeclare(
 		r.Exchange,
 		"topic",
 		true,
@@ -354,7 +354,7 @@ func (r *RabbitMQ) RecieveTopic() {
 	)
 	r.failOnErr(err, "Failed to declare an exchange!")
 	//2.尝试创建队列
-	declare, err := r.channel.QueueDeclare(
+	declare, err := r.Channel.QueueDeclare(
 		"",
 		false,
 		false,
@@ -364,7 +364,7 @@ func (r *RabbitMQ) RecieveTopic() {
 	)
 	r.failOnErr(err, "Failed to declare a queue")
 	//3.绑定队列到exchange中
-	err = r.channel.QueueBind(
+	err = r.Channel.QueueBind(
 		declare.Name,
 		r.Key,
 		r.Exchange,
@@ -372,7 +372,7 @@ func (r *RabbitMQ) RecieveTopic() {
 		nil,
 	)
 	//消费消息
-	msgs, err := r.channel.Consume(
+	msgs, err := r.Channel.Consume(
 		declare.Name,
 		"",
 		true,
@@ -392,5 +392,215 @@ func (r *RabbitMQ) RecieveTopic() {
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~话题模式 end
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~事务机制 start
+
+// TxSelect 开启事务
+func (r *RabbitMQ) TxSelect() error {
+	return r.Channel.Tx()
+}
+
+// TxCommit 提交事务
+func (r *RabbitMQ) TxCommit() error {
+	return r.Channel.TxCommit()
+}
+
+// TxRollback 回滚事务
+func (r *RabbitMQ) TxRollback() error {
+	return r.Channel.TxRollback()
+}
+
+// PublishSimpleWithTx 简单模式发布消息（带事务）
+func (r *RabbitMQ) PublishSimpleWithTx(msg string) error {
+	// 开启事务
+	err := r.TxSelect()
+	if err != nil {
+		return fmt.Errorf("开启事务失败: %s", err)
+	}
+
+	// 声明队列
+	_, err = r.Channel.QueueDeclare(
+		r.QueueName, //队列名，
+		false,       //durable，是否持久化
+		false,       //autoDelete，自动删除
+		false,       //exclusive，是否排他
+		false,       //noWait，是否阻塞
+		nil,         //args，额外参数属性
+	)
+	if err != nil {
+		_ = r.TxRollback()
+		return fmt.Errorf("队列声明失败: %s", err)
+	}
+
+	// 发送消息
+	err = r.Channel.Publish(
+		r.Exchange,
+		r.QueueName,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(msg),
+		})
+	if err != nil {
+		_ = r.TxRollback()
+		return fmt.Errorf("消息发送失败: %s", err)
+	}
+
+	// 提交事务
+	err = r.TxCommit()
+	if err != nil {
+		_ = r.TxRollback()
+		return fmt.Errorf("事务提交失败: %s", err)
+	}
+
+	return nil
+}
+
+// PublishPubWithTx 发布/订阅模式发布消息（带事务）
+func (r *RabbitMQ) PublishPubWithTx(msg string) error {
+	// 开启事务
+	err := r.TxSelect()
+	if err != nil {
+		return fmt.Errorf("开启事务失败: %s", err)
+	}
+
+	// 创建交换机
+	err = r.Channel.ExchangeDeclare(
+		r.Exchange,
+		"fanout",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		_ = r.TxRollback()
+		return fmt.Errorf("交换机声明失败: %s", err)
+	}
+
+	// 发送消息
+	err = r.Channel.Publish(
+		r.Exchange,
+		"",
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(msg),
+		})
+	if err != nil {
+		_ = r.TxRollback()
+		return fmt.Errorf("消息发送失败: %s", err)
+	}
+
+	// 提交事务
+	err = r.TxCommit()
+	if err != nil {
+		_ = r.TxRollback()
+		return fmt.Errorf("事务提交失败: %s", err)
+	}
+
+	return nil
+}
+
+// PublishRoutingWithTx 路由模式发布消息（带事务）
+func (r *RabbitMQ) PublishRoutingWithTx(msg string) error {
+	// 开启事务
+	err := r.TxSelect()
+	if err != nil {
+		return fmt.Errorf("开启事务失败: %s", err)
+	}
+
+	// 创建交换机
+	err = r.Channel.ExchangeDeclare(
+		r.Exchange,
+		"direct",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		_ = r.TxRollback()
+		return fmt.Errorf("交换机声明失败: %s", err)
+	}
+
+	// 发送消息
+	err = r.Channel.Publish(
+		r.Exchange,
+		r.Key,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(msg),
+		})
+	if err != nil {
+		_ = r.TxRollback()
+		return fmt.Errorf("消息发送失败: %s", err)
+	}
+
+	// 提交事务
+	err = r.TxCommit()
+	if err != nil {
+		_ = r.TxRollback()
+		return fmt.Errorf("事务提交失败: %s", err)
+	}
+
+	return nil
+}
+
+// PublishTopicWithTx 话题模式发布消息（带事务）
+func (r *RabbitMQ) PublishTopicWithTx(msg string) error {
+	// 开启事务
+	err := r.TxSelect()
+	if err != nil {
+		return fmt.Errorf("开启事务失败: %s", err)
+	}
+
+	// 创建交换机
+	err = r.Channel.ExchangeDeclare(
+		r.Exchange,
+		"topic",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		_ = r.TxRollback()
+		return fmt.Errorf("交换机声明失败: %s", err)
+	}
+
+	// 发送消息
+	err = r.Channel.Publish(
+		r.Exchange,
+		r.Key,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(msg),
+		})
+	if err != nil {
+		_ = r.TxRollback()
+		return fmt.Errorf("消息发送失败: %s", err)
+	}
+
+	// 提交事务
+	err = r.TxCommit()
+	if err != nil {
+		_ = r.TxRollback()
+		return fmt.Errorf("事务提交失败: %s", err)
+	}
+
+	return nil
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~事务机制 end
 
 //
